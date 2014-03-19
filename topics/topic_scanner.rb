@@ -7,7 +7,7 @@ $print = true if ARGV.include?('-p')
 $full_scan = true if ARGV.include?('-f') || Time.now.hour == 16
 AGENTS = ['Mac Safari', 'Windows Mozilla', 'Linux Firefox']
 
-WORKSPACE = File.expand_path(File.dirname(__FILE__))
+WORKSPACE = File.expand_path(File.dirname(__FILE__)) + '/'
 CURRENT_LIST_FILENAME = WORKSPACE + 'topic_list.txt'
 RESULT_FILE = WORKSPACE + 'result.txt'
 TOPIC_CONTENT_PATH = WORKSPACE + 'content/'
