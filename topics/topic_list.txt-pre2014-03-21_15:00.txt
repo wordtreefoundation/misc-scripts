@@ -163,7 +163,6 @@ m:
 - Music
 n:
 - New Testament
-- Noah
 o:
 - Obedience
 - Old Testament
@@ -212,7 +211,6 @@ s:
 - Sacrifice
 - Salvation
 - Same-Sex Attraction
-- Same-sex Marriage
 - Saved
 - Scriptures
 - Sealing
