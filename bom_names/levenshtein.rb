@@ -1,13 +1,13 @@
 require 'levenshtein'
 
 BOM_NAMES = File.read('bom_pronunciation_guide_names.txt').split
-WALKER_NAMES = File.read('walkers_key.txt').split
+OTHER_NAMES = File.read(ARGV[0]).split
 
 # Find lowest Levenstein distance for each name
 result = BOM_NAMES.inject({}) do |accum, bname|
   min = 100
   indices = []
-  WALKER_NAMES.each_with_index do |wname, index|
+  OTHER_NAMES.each_with_index do |wname, index|
     distance = Levenshtein.distance(wname, bname)
     if distance < min
       indices = [index]
@@ -17,7 +17,7 @@ result = BOM_NAMES.inject({}) do |accum, bname|
     end
   end
 
-  accum[bname] = [min].concat(indices.map { |i| WALKER_NAMES[i] })
+  accum[bname] = [min].concat(indices.map { |i| OTHER_NAMES[i] })
   accum
 end
 
