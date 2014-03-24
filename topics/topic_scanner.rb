@@ -43,7 +43,8 @@ def scan_topic_pages(page, topics)
     topic_page = page.link_with(text: topic).click
     primary_section = topic_page.at('#primary')
     next if primary_section.nil?
-    text = primary_section.text.squeeze(' ').gsub(/^.*var\s+videoPlayer.*$/, '')
+    text = ''
+    primary_section.traverse { |node| text.concat(node.inner_text) if node.attributes.keys.include?('uri') }
     filename = TOPIC_CONTENT_PATH + topic + '.txt'
     if File.exists?(filename)
       file = Tempfile.new('topic')
