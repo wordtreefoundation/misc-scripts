@@ -4,8 +4,8 @@ require 'debugger'
 
 THREAD_COUNT = 5  # Number of threads to retrieve pages simultaneously
 RETRY_LIMIT = 2   # Number of times to retry a link before giving up
-START_YEAR = 1971 # 1971 is first year conference reports are available at LDS.org
-END_YEAR = 2013
+START_YEAR = 2012 # 1971 is first year conference reports are available at LDS.org
+END_YEAR = 2014
 MONTHS = ['04', '10'] # April, October
 PHRASES = {'Joseph Smith' => /Joseph Smith/i, # Key should be the CSV header, value the regex to match
            'Book of Mormon' => /Book of Mormon/i,
@@ -17,6 +17,7 @@ results = {}
 
 START_YEAR.upto(END_YEAR) do |year|
   MONTHS.each do |month|
+    next if month.to_i > Time.now.month && year >= Time.now.year
     results["#{year}-#{month}"] = {}
     PHRASES.keys.each { |key| results["#{year}-#{month}"][key] = 0 }
 
@@ -33,10 +34,11 @@ START_YEAR.upto(END_YEAR) do |year|
           if link
             retries = 0
             begin
-              # puts "#{thread_id}: Visiting #{link}"
+              puts "#{thread_id}: Visiting #{link}"
               page = open(link).read
-              page = page[/<div\s*id="primary">.+?<p uri=(.+)<p uri=/im, 1] # Grabs #primary and omits last paragraph
+              page = page[/<div\s*id="primary">.+?<p uri=(.+)end\s*#primary/im, 1] # Grabs #primary
               page.gsub!(/(<[A-Z\/][A-Z0-9]*[^>]*>)/i) # Strip out any html
+              page.gsub!(/(church|in\s+the\s+name)\s+of\s+(jesus\s+)?christ/i, '') # Exclude name of church and in the name of JC
               PHRASES.keys.each do |key|
                 phrase_count = page.scan(PHRASES[key]).size
                 results["#{year}-#{month}"][key] += phrase_count
