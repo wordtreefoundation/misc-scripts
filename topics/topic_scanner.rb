@@ -4,7 +4,7 @@ require 'yaml'
 
 puts `date`
 $print = true if ARGV.include?('-p')
-$full_scan = true if ARGV.include?('-f') || Time.now.hour == 16
+$full_scan = true if ARGV.include?('-f') # || Time.now.hour == 16
 AGENTS = ['Mac Safari', 'Windows Mozilla', 'Linux Firefox']
 
 WORKSPACE = File.expand_path(File.dirname(__FILE__)) + '/'
