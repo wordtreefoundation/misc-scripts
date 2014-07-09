@@ -37,15 +37,21 @@ puts "File pattern: #{pattern}"
 Dir.glob_recursively(pattern) do |file|
   file_id = file.sub(/\.md$/, "")
   puts file_id
-  yaml_header = read_bytes(file).split("---\n")[1]
+  yaml_header = read_bytes(file).split(/^---$/)[1]
   if yaml_header
-    doc = YAML.load(yaml_header)
+    begin
+      doc = YAML.load(yaml_header)
+    rescue Psych::SyntaxError => e
+      puts "WARNING: #{e}"
+      doc = {}
+    end
     puts "  #{doc["year"]}"
     doc["title"] ||= file
+    doc["archive_org_id"] ||= file
     doc["title"] = doc["title"].gsub(/\s+/, " ")
     doc["size_bytes"] = File.size(file)
 
-    existing_filter = books_tbl.filter({"archive_org_id" => file_id})
+    existing_filter = books_tbl.get_all(file_id, {"index" => "archive_org_id"})
     existing_count = existing_filter.run.count
 
     if existing_count == 0
@@ -62,7 +68,3 @@ Dir.glob_recursively(pattern) do |file|
     end
   end
 end
-
-# r.connect(:host => 'localhost', :port => 28015).repl
-# r.db('test').table_create('tv_shows').run
-# r.table('tv_shows').insert({ 'name'=>'Star Trek TNG' }).run
