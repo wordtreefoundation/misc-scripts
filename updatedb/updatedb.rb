@@ -4,7 +4,10 @@ require 'yaml'
 
 include RethinkDB::Shortcuts
 
-r.connect(:host => 'localhost', :port => 28015).repl
+host = ENV['DB_HOST'] || 'localhost'
+port = ENV['DB_PORT'] || 28015
+
+r.connect(:host => host, :port => port).repl
 books_tbl = r.db('research').table('books')
 
 def read_bytes(filename, bytes=4096*4)
@@ -18,7 +21,7 @@ class Dir
      begin
        glob(pattern, &block)
        dirs = glob('*').select { |f| File.directory? f }
-       dirs.each do |dir|
+       dirs.sort.each do |dir|
          # Do not process symlink
          next if File.symlink? dir
          chdir dir
@@ -32,39 +35,50 @@ class Dir
   end
 end
 
-pattern = ARGV.first
-puts "File pattern: #{pattern}"
-Dir.glob_recursively(pattern) do |file|
-  file_id = file.sub(/\.md$/, "")
-  puts file_id
+def doc_from_header(file)
   yaml_header = read_bytes(file).split(/^---$/)[1]
   if yaml_header
     begin
-      doc = YAML.load(yaml_header)
+      return YAML.load(yaml_header)
     rescue Psych::SyntaxError => e
-      puts "WARNING: #{e}"
-      doc = {}
+      warn "#{file}: #{e}"
     end
-    puts "  #{doc["year"]}"
-    doc["title"] ||= file
-    doc["archive_org_id"] ||= file
-    doc["title"] = doc["title"].gsub(/\s+/, " ")
-    doc["size_bytes"] = File.size(file)
+  else
+    warn "#{file} has no yaml header"
+  end
+  return {}
+end
 
-    existing_filter = books_tbl.get_all(file_id, {"index" => "archive_org_id"})
-    existing_count = existing_filter.run.count
-
-    if existing_count == 0
-      puts "  (inserted)"
-      result = books_tbl.insert(doc).run
-      if result["inserted"] != 1
-        puts result.inspect
-      end
-    elsif existing_count == 1
-      puts "  (updated)"
-      result = existing_filter.update(doc)
-    else
-      puts "WARNING: Ignored existing entry #{file_id} with #{existing_count}"
-    end
+max_batch_size = 200
+batch = []
+maybe_insert_batch = lambda do |docs|
+  if docs.size > 0
+    puts "INSERT #{ batch.map{|b| b["file_id"]}.inspect }"
+    books_tbl.insert(docs).run
+    batch = []
   end
 end
+
+pattern = ARGV.first
+puts "File pattern: #{pattern}"
+
+Dir.glob_recursively(pattern) do |file|
+  doc = doc_from_header(file)
+
+  file_id = File.basename(file).sub(/\.(md|txt)$/, "")
+  # puts file_id
+
+  # Add important fields to whatever is in the yaml header
+  doc["file_id"] = file_id
+  doc["title"] ||= file_id
+  doc["size_bytes"] = File.size(file)
+
+  # Clean up title by removing dup whitespace
+  doc["title"].gsub!(/\s+/, " ")
+
+  batch << doc
+
+  maybe_insert_batch[batch] if batch.size >= max_batch_size
+end
+
+maybe_insert_batch[batch]
