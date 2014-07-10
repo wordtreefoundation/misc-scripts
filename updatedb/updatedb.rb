@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'rethinkdb'
 require 'yaml'
+require 'find'
 
 include RethinkDB::Shortcuts
 
@@ -59,26 +60,31 @@ maybe_insert_batch = lambda do |docs|
   end
 end
 
-pattern = ARGV.first
-puts "File pattern: #{pattern}"
+directory = File.expand_path(ARGV.first)
+puts "Directory: #{directory}"
+sleep 1
 
-Dir.glob_recursively(pattern) do |file|
-  doc = doc_from_header(file)
+FILE_SUFFIX = /\.(md|txt)$/
 
-  file_id = File.basename(file).sub(/\.(md|txt)$/, "")
-  # puts file_id
+Find.find(directory) do |path|
+  if !FileTest.directory?(path) and path =~ FILE_SUFFIX
+    doc = doc_from_header(path)
 
-  # Add important fields to whatever is in the yaml header
-  doc["file_id"] = file_id
-  doc["title"] ||= file_id
-  doc["size_bytes"] = File.size(file)
+    file_id = File.basename(path).sub(FILE_SUFFIX, "")
+    # puts file_id
 
-  # Clean up title by removing dup whitespace
-  doc["title"].gsub!(/\s+/, " ")
+    # Add important fields to whatever is in the yaml header
+    doc["file_id"] = file_id
+    doc["title"] ||= file_id
+    doc["size_bytes"] = File.size(path)
 
-  batch << doc
+    # Clean up title by removing dup whitespace
+    doc["title"].gsub!(/\s+/, " ")
 
-  maybe_insert_batch[batch] if batch.size >= max_batch_size
+    batch << doc
+
+    maybe_insert_batch[batch] if batch.size >= max_batch_size
+  end
 end
 
 maybe_insert_batch[batch]
