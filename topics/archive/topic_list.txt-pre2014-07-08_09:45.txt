@@ -26,7 +26,6 @@ b:
 - Bible, Inerrancy of
 - Birth Control
 - Bishop
-- Book of Abraham
 - Book of Mormon
 - Book of Mormon and DNA Studies
 - Book of Mormon Translation
@@ -257,7 +256,6 @@ t:
 - Tithing
 - Tobacco
 - Transgression
-- Translation and Historicity of the Book of Abraham
 - Trials
 u:
 - Unity
