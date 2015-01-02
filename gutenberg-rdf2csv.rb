@@ -2,6 +2,15 @@
 # this script will process the rdf files and produce a CSV file with various metadata such
 # as book title, author's name, author's birth year, language, and download location of the
 # book.
+#
+# Example Usage:
+# $ find . -name "*.rdf" | xargs -n 1 ruby gutenberg-rdf2csv.rb | tee guten.meta.csv
+#
+# Example Output:
+# ./epub/31781/pg31781.rdf	31781	http://www.gutenberg.org/files/31781/31781.txt	http://mirrors.xmission.com/gutenberg/3/1/7/8/31781/31781.txt	The Bibliography of Walt Whitman	Frank Shay	1888	en
+# ./epub/31782/pg31782.rdf	31782	http://www.gutenberg.org/files/31782/31782.txt	http://mirrors.xmission.com/gutenberg/3/1/7/8/31782/31782.txt	The Poniard's Hilt	Eugène Sue	1804	en
+# ./epub/31783/pg31783.rdf	31783	http://www.gutenberg.org/files/31783/31783.txt	http://mirrors.xmission.com/gutenberg/3/1/7/8/31783/31783.txt	Was General Thomas Slow at Nashville?	Henry V. (Henry Van) Boynton	1835	en
+
 
 require "gutenberg_rdf"
 
