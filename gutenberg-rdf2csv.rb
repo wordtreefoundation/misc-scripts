@@ -3,6 +3,8 @@
 # as book title, author's name, author's birth year, language, and download location of the
 # book.
 #
+# Uses gem https://github.com/mrcook/gutenberg_rdf
+#
 # Example Usage:
 # $ find . -name "*.rdf" | xargs -n 1 ruby gutenberg-rdf2csv.rb | tee guten.meta.csv
 #
